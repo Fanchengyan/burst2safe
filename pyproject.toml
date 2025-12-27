@@ -52,6 +52,9 @@ Homepage = "https://github.com/ASFHyP3/burst2safe"
 [project.scripts]
 burst2safe = "burst2safe.burst2safe:main"
 burst2stack = "burst2safe.burst2stack:main"
+burst2stack-search = "burst2safe.burst2stack_search:main"
+burst2stack-download = "burst2safe.burst2stack_download:main"
+burst2stack-merge = "burst2safe.burst2stack_merge:main"
 local2safe = "burst2safe.local2safe:main"
 
 [project.optional-dependencies]

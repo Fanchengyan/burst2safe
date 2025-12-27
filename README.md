@@ -91,6 +91,62 @@ burst2stack --rel-orbit 64 --start-date 2020-06-03 --end-date 2020-06-17 --exten
 ```
 The usage of the `--extent`, `--pols`, `--swaths`, `--min-bursts`, and `--all-anns` arguments is the same as in `burst2safe`.
 
+## Split burst2stack Workflow
+
+For large-scale processing or when network connections are unreliable, we provide a split workflow that allows you to:
+1. Search and export burst information to a CSV file
+2. Download bursts with resume support (can be run multiple times)
+3. Merge downloaded bursts into SAFEs
+
+This workflow is useful when:
+- Downloads may fail and you want to resume without re-searching
+- You want to review the burst list before downloading
+- You need more control over each step of the process
+
+### Step 1: Search and Export to CSV
+
+Use `burst2stack-search` to search for bursts and export the results to a CSV file:
+
+```bash
+burst2stack-search --rel-orbit 64 --start-date 2020-06-03 --end-date 2020-06-17 \
+    --extent 53.57 27.54 53.78 27.60 --output-csv bursts.csv --output-dir ./data
+```
+
+This will:
+- Search ASF for matching bursts
+- Validate that all burst groups are valid
+- Export burst information to `bursts.csv`
+
+### Step 2: Download Bursts
+
+Use `burst2stack-download` to download the bursts listed in the CSV file:
+
+```bash
+burst2stack-download --input-csv bursts.csv
+```
+
+Features:
+- **Resume support**: Already downloaded files are automatically skipped
+- **Browser cookie authorization**: Uses your browser's cookies for authentication
+- **Re-run safely**: Can be run multiple times if downloads fail
+
+To force re-download all files (even if they exist):
+```bash
+burst2stack-download --input-csv bursts.csv --force
+```
+
+### Step 3: Merge into SAFEs
+
+Use `burst2stack-merge` to create SAFE files from the downloaded bursts:
+
+```bash
+burst2stack-merge --input-csv bursts.csv --output-dir ./safes
+```
+
+Options:
+- `--all-anns`: Include product annotation files for all swaths
+- `--keep-files`: Keep intermediate files after SAFE creation
+
 ## Strategy
 `burst2safe` combines and reformats individual bursts into a SAFE file following the procedure described in the [Sentinel-1 Product Specification Document](https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/document-library/-/asset_publisher/1dO7RF5fJMbd/content/sentinel-1-product-specification-from-ipf-360?_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1dO7RF5fJMbd_assetEntryId=4846613&_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1dO7RF5fJMbd_redirect=https%3A%2F%2Fsentinel.esa.int%2Fweb%2Fsentinel%2Fuser-guides%2Fsentinel-1-sar%2Fdocument-library%3Fp_p_id%3Dcom_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1dO7RF5fJMbd%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1dO7RF5fJMbd_assetEntryId%3D4846613%26_com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet_INSTANCE_1dO7RF5fJMbd_cur%3D0%26p_r_p_resetCur%3Dfalse)
 In this document, ESA describes how to create an Assembled Sentinel-1 Level 1 product from individual Sentinel-1 Level 1 SAFEs. We use this same strategy to combine ASF-extracted burst SLC products into a SAFE file that should be compatible with any SAR processor currently capable of using Sentinel-1 Level SAFEs. For in-depth technical details of the implementation, we refer you to the Sentinel-1 Product Specification document above. However, it is important to know that ESA recommends merging Sentinel-1 data/metadata components using three primary strategies:
